@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # The Vector Database (PostgreSQL with pgvector)
+  pg-vector:
+    image: ankane/pgvector:latest
+    container_name: memoria-postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: memoriadb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # The Caching Layer (Redis)
+  redis-cache:
+    image: redis:alpine
+    container_name: memoria-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  # The Asynchronous Data Lake (MongoDB)
+  mongo-logs:
+    image: mongo:latest
+    container_name: memoria-mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  mongodata:
