@@ -1,90 +1,32 @@
 import express from "express";
-import redisClient, { connectRedis } from "./services/redis.js";
+import { connectRedis } from "./services/redis.js";
 import { rateLimiter } from "./middleware/rateLimiter.js";
-import { checkExactCache } from "./middleware/cache.js";
-import dotenv from 'dotenv';
-import pool, { initDB } from "./services/postgres.js";
-import { checkSemanticCache } from "./middleware/semanticCache.js";
-import { streamLLMResponse } from "./services/llm.js";
-import { logTelemetry } from "./services/telemetry.js";
+import dotenv from "dotenv";
+import { initDB } from "./services/postgres.js";
 import { connectMongo } from "./services/mongo.js";
-import { validatePayload } from "./middleware/validate.js";
-import { determineRoute } from "./services/router.js";
+import cors from "cors";
+import generateRoute from "./routes/generate.js";
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
-
-app.use('/api/', rateLimiter);
-
-app.post(
-    '/api/generate', 
-    validatePayload,
-    checkExactCache,       // L1: Redis
-    checkSemanticCache,    // L2: Postgres + Python
-    async (req, res) => {
-        const { prompt, cacheKey, embedding } = req.body;
-        
-        try {
-            const startTime = Date.now();
-            res.setHeader('Content-Type', 'text/event-stream');
-            res.setHeader('Cache-Control', 'no-cache');
-            res.setHeader('Connection', 'keep-alive');
-            
-            res.write(`data: ${JSON.stringify({ event: 'metadata', source: 'llm_generated' })}\n\n`);
-
-            const targetModel = determineRoute(prompt);
-
-            const generatedResponse = await streamLLMResponse(prompt, targetModel, res);
-
-            
-            const latency = Date.now() - startTime;
-            console.log(`LLM Generation Complete in ${latency}ms`);
-
-            res.write(`data: [DONE]\n\n`);
-            res.end();
-
-            if (cacheKey) {
-                await redisClient.setEx(cacheKey, 3600, JSON.stringify(generatedResponse));
-            }
-
-            if (embedding) {
-                const insertQuery = `
-                    INSERT INTO semantic_cache (prompt, embedding, response) 
-                    VALUES ($1, $2, $3);
-                `;
-                await pool.query(insertQuery, [prompt, embedding, generatedResponse]);
-            }
-
-            // res.json({ 
-            //     source: 'llm_generated',
-            //     latency_ms: `${latency}ms`,
-            //     response: generatedResponse 
-            // });
-
-            await logTelemetry({
-                prompt,
-                latency_ms: latency,
-                response: generatedResponse,
-                source: `llm_generated_${targetModel}`
-            });
-
-        } catch (error) {
-            console.error('Generation Error:', error);
-            if (!res.headersSent) {
-                res.status(500).json({ error: 'LLM Generation Failed' });
-            } else {
-                res.write(`data: ${JSON.stringify({ error: 'LLM Generation Failed' })}\n\n`);
-                res.end();
-            }
-        }
-    }
+app.use(
+  cors({
+    origin: "*", //will change
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  }),
 );
 
+app.use(express.json());
+
+app.use("/api/", rateLimiter);
+
+app.use("/api/generate", generateRoute)
+
 const startServer = async () => {
-  await connectRedis ();
+  await connectRedis();
   await initDB();
   await connectMongo();
   app.listen(PORT, () => {
