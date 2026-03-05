@@ -55,11 +55,11 @@ app.post(
                 await pool.query(insertQuery, [prompt, embedding, generatedResponse]);
             }
 
-            res.json({ 
-                source: 'llm_generated',
-                latency_ms: `${latency}ms`,
-                response: generatedResponse 
-            });
+            // res.json({ 
+            //     source: 'llm_generated',
+            //     latency_ms: `${latency}ms`,
+            //     response: generatedResponse 
+            // });
 
             logTelemetry({
                 prompt,

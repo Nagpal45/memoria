@@ -47,12 +47,14 @@ export const checkSemanticCache = async (
           console.log(`Promoted L2 Semantic Hit to L1 Redis Cache`);
         }
 
-        res.json({
-          source: "postgres_semantic_cache",
-          similarity: match.similarity,
-          latency_ms: latency,
-          response: match.response,
-        });
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        
+        res.write(`data: ${JSON.stringify({ event: 'metadata', source: 'postgres_semantic_cache' })}\n\n`);
+        res.write(`data: ${JSON.stringify({ text: match.response })}\n\n`);
+        res.write(`data: [DONE]\n\n`);
+        res.end();
 
         logTelemetry({
           prompt: prompt,

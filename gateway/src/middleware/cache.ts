@@ -23,11 +23,15 @@ export const checkExactCache = async (req: Request, res: Response, next: NextFun
             const latency = Date.now() - startTime;
             const parsedResponse = JSON.parse(cachedResponse);
             console.log('Cache Hit (Redis Exact Match)');
-            res.json({
-                source: 'redis_cache',
-                latency_ms: latency,
-                response: parsedResponse
-            });
+            
+            res.setHeader('Content-Type', 'text/event-stream');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Connection', 'keep-alive');
+            
+            res.write(`data: ${JSON.stringify({ event: 'metadata', source: 'redis_cache' })}\n\n`);
+            res.write(`data: ${JSON.stringify({ text: parsedResponse })}\n\n`);
+            res.write(`data: [DONE]\n\n`);
+            res.end();
 
             logTelemetry({
                 prompt,
