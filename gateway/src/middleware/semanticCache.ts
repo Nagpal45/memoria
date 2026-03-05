@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { getEmbedding } from "../services/vector.js";
 import pool from "../services/postgres.js";
 import redisClient from "../services/redis.js";
+import { logTelemetry } from "../services/telemetry.js";
 
 export const checkSemanticCache = async (
   req: Request,
@@ -12,6 +13,7 @@ export const checkSemanticCache = async (
 
   try {
     console.log("L1 Miss. Checking L2 Semantic Cache...");
+    const startTime = Date.now();
     const embedding = await getEmbedding(prompt);
 
     const embeddingString = `[${embedding.join(",")}]`;
@@ -33,6 +35,7 @@ export const checkSemanticCache = async (
       );
 
       if (match.similarity > 0.9) {
+        const latency = Date.now() - startTime;
         console.log(`Cache Hit! Served from PostgreSQL`);
 
         if (req.body.cacheKey) {
@@ -49,6 +52,14 @@ export const checkSemanticCache = async (
           similarity: match.similarity,
           latency_ms: "~50ms",
           response: match.response,
+        });
+
+        logTelemetry({
+          prompt: prompt,
+          response: match.response,
+          source: "postgres_semantic_cache",
+          latency_ms: latency,
+          similarity_score: match.similarity,
         });
         return;
       } else {
