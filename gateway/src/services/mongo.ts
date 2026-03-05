@@ -23,7 +23,12 @@ const telemetrySchema = new mongoose.Schema({
   response: { type: String, required: true },
   source: {
     type: String,
-    enum: ["redis_cache", "postgres_semantic_cache", "llm_generated"],
+    enum: [
+        "redis_cache", 
+        "postgres_semantic_cache", 
+        "llm_generated_cloud_groq", 
+        "llm_generated_local_ollama"
+    ],
     required: true,
   },
   latency_ms: { type: Number, required: true },

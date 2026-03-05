@@ -9,6 +9,7 @@ import { streamLLMResponse } from "./services/llm.js";
 import { logTelemetry } from "./services/telemetry.js";
 import { connectMongo } from "./services/mongo.js";
 import { validatePayload } from "./middleware/validate.js";
+import { determineRoute } from "./services/router.js";
 
 dotenv.config();
 const app = express();
@@ -34,7 +35,9 @@ app.post(
             
             res.write(`data: ${JSON.stringify({ event: 'metadata', source: 'llm_generated' })}\n\n`);
 
-            const generatedResponse = await streamLLMResponse(prompt, res);
+            const targetModel = determineRoute(prompt);
+
+            const generatedResponse = await streamLLMResponse(prompt, targetModel, res);
 
             
             const latency = Date.now() - startTime;
@@ -65,11 +68,17 @@ app.post(
                 prompt,
                 latency_ms: latency,
                 response: generatedResponse,
-                source: 'llm_generated'
+                source: `llm_generated_${targetModel}`
             });
 
         } catch (error) {
-            res.status(500).json({ error: 'LLM Generation Failed' });
+            console.error('Generation Error:', error);
+            if (!res.headersSent) {
+                res.status(500).json({ error: 'LLM Generation Failed' });
+            } else {
+                res.write(`data: ${JSON.stringify({ error: 'LLM Generation Failed' })}\n\n`);
+                res.end();
+            }
         }
     }
 );
