@@ -8,6 +8,7 @@ import { checkSemanticCache } from "./middleware/semanticCache.js";
 import { generateLLMResponse } from "./services/llm.js";
 import { logTelemetry } from "./services/telemetry.js";
 import { connectMongo } from "./services/mongo.js";
+import { validatePayload } from "./middleware/validate.js";
 
 dotenv.config();
 const app = express();
@@ -19,6 +20,7 @@ app.use('/api/', rateLimiter);
 
 app.post(
     '/api/generate', 
+    validatePayload,
     checkExactCache,       // L1: Redis
     checkSemanticCache,    // L2: Postgres + Python
     async (req, res) => {
