@@ -50,7 +50,7 @@ export const checkSemanticCache = async (
         res.json({
           source: "postgres_semantic_cache",
           similarity: match.similarity,
-          latency_ms: "~50ms",
+          latency_ms: latency,
           response: match.response,
         });
 

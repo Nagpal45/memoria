@@ -5,7 +5,7 @@ import { checkExactCache } from "./middleware/cache.js";
 import dotenv from 'dotenv';
 import pool, { initDB } from "./services/postgres.js";
 import { checkSemanticCache } from "./middleware/semanticCache.js";
-import { generateLLMResponse } from "./services/llm.js";
+import { streamLLMResponse } from "./services/llm.js";
 import { logTelemetry } from "./services/telemetry.js";
 import { connectMongo } from "./services/mongo.js";
 import { validatePayload } from "./middleware/validate.js";
@@ -28,11 +28,20 @@ app.post(
         
         try {
             const startTime = Date.now();
+            res.setHeader('Content-Type', 'text/event-stream');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Connection', 'keep-alive');
             
-            const generatedResponse = await generateLLMResponse(prompt);
+            res.write(`data: ${JSON.stringify({ event: 'metadata', source: 'llm_generated' })}\n\n`);
+
+            const generatedResponse = await streamLLMResponse(prompt, res);
+
             
             const latency = Date.now() - startTime;
             console.log(`LLM Generation Complete in ${latency}ms`);
+
+            res.write(`data: [DONE]\n\n`);
+            res.end();
 
             if (cacheKey) {
                 await redisClient.setEx(cacheKey, 3600, JSON.stringify(generatedResponse));

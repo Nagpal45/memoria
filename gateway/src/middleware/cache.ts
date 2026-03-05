@@ -25,7 +25,7 @@ export const checkExactCache = async (req: Request, res: Response, next: NextFun
             console.log('Cache Hit (Redis Exact Match)');
             res.json({
                 source: 'redis_cache',
-                latency_ms: '< 5ms',
+                latency_ms: latency,
                 response: parsedResponse
             });
 
