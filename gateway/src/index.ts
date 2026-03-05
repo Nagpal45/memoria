@@ -5,6 +5,7 @@ import { checkExactCache } from "./middleware/cache.js";
 import dotenv from 'dotenv';
 import pool, { initDB } from "./services/postgres.js";
 import { checkSemanticCache } from "./middleware/semanticCache.js";
+import { generateLLMResponse } from "./services/llm.js";
 
 dotenv.config();
 const app = express();
@@ -14,17 +15,20 @@ app.use(express.json());
 
 app.use('/api/', rateLimiter);
 
-// placeholder route
 app.post(
     '/api/generate', 
-    checkExactCache,       //L1
-    checkSemanticCache,    //L2
+    checkExactCache,       // L1: Redis
+    checkSemanticCache,    // L2: Postgres + Python
     async (req, res) => {
         const { prompt, cacheKey, embedding } = req.body;
-        console.log('L2 Miss. Forwarding to expensive LLM...');
         
-        setTimeout(async () => {
-            const generatedResponse = `This is the AI-generated answer for: "${prompt}"`;
+        try {
+            const startTime = Date.now();
+            
+            const generatedResponse = await generateLLMResponse(prompt);
+            
+            const latency = Date.now() - startTime;
+            console.log(`LLM Generation Complete in ${latency}ms`);
 
             if (cacheKey) {
                 await redisClient.setEx(cacheKey, 3600, JSON.stringify(generatedResponse));
@@ -40,10 +44,13 @@ app.post(
 
             res.json({ 
                 source: 'llm_generated',
-                latency_ms: '~2000ms',
+                latency_ms: `${latency}ms`,
                 response: generatedResponse 
             });
-        }, 2000);
+
+        } catch (error) {
+            res.status(500).json({ error: 'LLM Generation Failed' });
+        }
     }
 );
 
