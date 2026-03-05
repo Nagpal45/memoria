@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-export type ModelTarget = 'cloud_llama_70b' | 'cloud_mixtral' | 'local_llama3';
+export type ModelTarget = 'cloud_llama_70b' | 'cloud_llama_8b' | 'local_llama3';
 
 export const determineRouteChain = (prompt: string): ModelTarget[] => {
     const isProd = process.env.NODE_ENV === 'production';
@@ -16,8 +16,8 @@ export const determineRouteChain = (prompt: string): ModelTarget[] => {
         // Fallback 1: Fast cloud model. 
         // Fallback 2: Local model (if not in prod).
         return isProd 
-            ? ['cloud_llama_70b', 'cloud_mixtral'] 
-            : ['cloud_llama_70b', 'cloud_mixtral', 'local_llama3'];
+            ? ['cloud_llama_70b', 'cloud_llama_8b'] 
+            : ['cloud_llama_70b', 'cloud_llama_8b', 'local_llama3'];
     }
 
     const isCreative = /write a story|compose|essay|blog|creative/.test(normalizedPrompt);
@@ -25,11 +25,11 @@ export const determineRouteChain = (prompt: string): ModelTarget[] => {
 
     if (isCreative || isLongContext) {
         return isProd 
-            ? ['cloud_mixtral', 'cloud_llama_70b'] 
-            : ['cloud_mixtral', 'cloud_llama_70b', 'local_llama3'];
+            ? ['cloud_llama_8b', 'cloud_llama_70b'] 
+            : ['cloud_llama_8b', 'cloud_llama_70b', 'local_llama3'];
     }
 
     return isProd 
-        ? ['cloud_mixtral', 'cloud_llama_70b'] 
-        : ['local_llama3', 'cloud_mixtral']; 
+        ? ['cloud_llama_8b', 'cloud_llama_70b'] 
+        : ['local_llama3', 'cloud_llama_8b']; 
 };

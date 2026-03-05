@@ -4,9 +4,9 @@ import pool from "../services/postgres.js";
 import { validatePayload } from "../middleware/validate.js";
 import { checkExactCache } from "../middleware/cache.js";
 import { checkSemanticCache } from "../middleware/semanticCache.js";
-import { determineRoute } from "../services/router.js";
-import { streamLLMResponse } from "../services/llm.js";
 import { logTelemetry } from "../services/telemetry.js";
+import { determineRouteChain } from "../services/router.js";
+import { streamWithFallback } from "../services/llm.js";
 
 const router = Router();
 
@@ -28,13 +28,10 @@ router.post(
         `data: ${JSON.stringify({ event: "metadata", source: "llm_generated" })}\n\n`,
       );
 
-      const targetModel = determineRoute(prompt);
+      const routeChain = determineRouteChain(prompt);
 
-      const generatedResponse = await streamLLMResponse(
-        prompt,
-        targetModel,
-        res,
-      );
+      const { response: generatedResponse, finalModel } =
+        await streamWithFallback(prompt, routeChain, res);
 
       const latency = Date.now() - startTime;
       console.log(`LLM Generation Complete in ${latency}ms`);
@@ -62,7 +59,7 @@ router.post(
         prompt,
         latency_ms: latency,
         response: generatedResponse,
-        source: `llm_generated_${targetModel}`,
+        source: `llm_generated_${finalModel}`,
       });
     } catch (error) {
       console.error("Generation Error:", error);
