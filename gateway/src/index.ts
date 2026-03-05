@@ -6,6 +6,8 @@ import dotenv from 'dotenv';
 import pool, { initDB } from "./services/postgres.js";
 import { checkSemanticCache } from "./middleware/semanticCache.js";
 import { generateLLMResponse } from "./services/llm.js";
+import { logTelemetry } from "./services/telemetry.js";
+import { connectMongo } from "./services/mongo.js";
 
 dotenv.config();
 const app = express();
@@ -48,6 +50,13 @@ app.post(
                 response: generatedResponse 
             });
 
+            logTelemetry({
+                prompt,
+                latency_ms: latency,
+                response: generatedResponse,
+                source: 'llm_generated'
+            });
+
         } catch (error) {
             res.status(500).json({ error: 'LLM Generation Failed' });
         }
@@ -57,6 +66,7 @@ app.post(
 const startServer = async () => {
   await connectRedis ();
   await initDB();
+  await connectMongo();
   app.listen(PORT, () => {
     console.log(`Memoria Gateway is running on port ${PORT}`);
   });
