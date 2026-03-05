@@ -61,7 +61,7 @@ app.post(
             //     response: generatedResponse 
             // });
 
-            logTelemetry({
+            await logTelemetry({
                 prompt,
                 latency_ms: latency,
                 response: generatedResponse,

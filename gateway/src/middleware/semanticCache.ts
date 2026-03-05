@@ -56,7 +56,7 @@ export const checkSemanticCache = async (
         res.write(`data: [DONE]\n\n`);
         res.end();
 
-        logTelemetry({
+        await logTelemetry({
           prompt: prompt,
           response: match.response,
           source: "postgres_semantic_cache",

@@ -5,8 +5,13 @@ dotenv.config();
 
 export const connectMongo = async () => {
   try {
-    const mongoUri = `mongodb://${process.env.MONGO_INITDB_ROOT_USERNAME}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@localhost:27017/memoria_logs?authSource=admin`;
-    await mongoose.connect(mongoUri);
+    const mongoUri = `mongodb://${process.env.MONGO_INITDB_ROOT_USERNAME}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@127.0.0.1:27017/memoria_logs?authSource=admin`;
+
+    mongoose.set('bufferCommands', false);
+
+    await mongoose.connect(mongoUri, {
+        serverSelectionTimeoutMS: 3000
+    });
     console.log("Connected to MongoDB (Telemetry Data Lake)");
   } catch (error) {
     console.error("MongoDB connection error:", error);

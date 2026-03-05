@@ -8,8 +8,11 @@ interface LogPayload {
     similarity_score?: number;
 }
 
-export const logTelemetry = (data: LogPayload) => {
-    TelemetryLog.create(data).catch(err => {
-        console.error('Failed to write telemetry to MongoDB:', err);
-    });
+export const logTelemetry = async (data: LogPayload) => {
+    try {
+        const doc = await TelemetryLog.create(data);
+        console.log('Mongoose saved telemetry log with ID:', doc._id);
+    } catch (err) {
+        console.error('Mongoose failed to save! Reason:', err);
+    }
 };

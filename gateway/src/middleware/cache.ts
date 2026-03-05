@@ -33,7 +33,7 @@ export const checkExactCache = async (req: Request, res: Response, next: NextFun
             res.write(`data: [DONE]\n\n`);
             res.end();
 
-            logTelemetry({
+            await logTelemetry({
                 prompt,
                 latency_ms: latency,
                 response: parsedResponse,
