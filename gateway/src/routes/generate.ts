@@ -34,7 +34,7 @@ router.post(
         await streamWithFallback(prompt, routeChain, res);
 
       const latency = Date.now() - startTime;
-      console.log(`LLM Generation Complete in ${latency}ms`);
+      // console.log(`LLM Generation Complete in ${latency}ms`);
 
       res.write(`data: [DONE]\n\n`);
       res.end();

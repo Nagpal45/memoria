@@ -66,13 +66,13 @@ export const streamWithFallback = async (prompt: string, routeChain: ModelTarget
         if (!targetModel) continue;
         
         try {
-            console.log(`Attempting model (${i + 1}/${routeChain.length}): ${targetModel}...`);
+            // console.log(`Attempting model (${i + 1}/${routeChain.length}): ${targetModel}...`);
             
             res.write(`data: ${JSON.stringify({ event: 'metadata', source: `llm_generated_${targetModel}` })}\n\n`);
             
             const generatedText = await attemptStream(prompt, targetModel, res);
             
-            console.log(`Success with ${targetModel}!`);
+            // console.log(`Success with ${targetModel}!`);
             return { response: generatedText, finalModel: targetModel }; 
 
         } catch (error: any) {
@@ -84,7 +84,7 @@ export const streamWithFallback = async (prompt: string, routeChain: ModelTarget
             }
             
             res.write(`data: ${JSON.stringify({ event: 'fallback_triggered', failed_model: targetModel, next_model: routeChain[i+1] })}\n\n`);
-            console.log(`Falling back to ${routeChain[i+1]}...`);
+            // console.log(`Falling back to ${routeChain[i+1]}...`);
         }
     }
 

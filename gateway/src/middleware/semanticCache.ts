@@ -12,7 +12,7 @@ export const checkSemanticCache = async (
   const { prompt } = req.body;
 
   try {
-    console.log("L1 Miss. Checking L2 Semantic Cache...");
+    // console.log("L1 Miss. Checking L2 Semantic Cache...");
     const startTime = Date.now();
     const embedding = await getEmbedding(prompt);
 
@@ -30,13 +30,13 @@ export const checkSemanticCache = async (
     if (result.rows.length > 0) {
       const match = result.rows[0];
 
-      console.log(
-        `Top Semantic Match Score: ${(match.similarity * 100).toFixed(2)}%`,
-      );
+      // console.log(
+      //   `Top Semantic Match Score: ${(match.similarity * 100).toFixed(2)}%`,
+      // );
 
       if (match.similarity > 0.9) {
         const latency = Date.now() - startTime;
-        console.log(`Cache Hit! Served from PostgreSQL`);
+        // console.log(`Cache Hit! Served from PostgreSQL`);
 
         if (req.body.cacheKey) {
           await redisClient.setEx(
@@ -44,7 +44,7 @@ export const checkSemanticCache = async (
             3600,
             JSON.stringify(match.response),
           );
-          console.log(`Promoted L2 Semantic Hit to L1 Redis Cache`);
+          // console.log(`Promoted L2 Semantic Hit to L1 Redis Cache`);
         }
 
         res.setHeader('Content-Type', 'text/event-stream');
@@ -64,8 +64,9 @@ export const checkSemanticCache = async (
           similarity_score: match.similarity,
         });
         return;
-      } else {
-        console.log(`Match too low. Forwarding to LLM...`);
+      // } else {
+      //   console.log(`Match too low. Forwarding to LLM...`);
+      // }
       }
     }
 

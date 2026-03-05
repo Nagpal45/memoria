@@ -22,7 +22,7 @@ export const checkExactCache = async (req: Request, res: Response, next: NextFun
         if (cachedResponse) {
             const latency = Date.now() - startTime;
             const parsedResponse = JSON.parse(cachedResponse);
-            console.log('Cache Hit (Redis Exact Match)');
+            // console.log('Cache Hit (Redis Exact Match)');
             
             res.setHeader('Content-Type', 'text/event-stream');
             res.setHeader('Cache-Control', 'no-cache');
