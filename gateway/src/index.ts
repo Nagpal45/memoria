@@ -2,7 +2,10 @@ import express from "express";
 import redisClient, { connectRedis } from "./services/redis.js";
 import { rateLimiter } from "./middleware/rateLimiter.js";
 import { checkExactCache } from "./middleware/cache.js";
+import dotenv from 'dotenv';
+import { initDB } from "./services/postgres.js";
 
+dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -33,6 +36,7 @@ app.post('/api/generate', checkExactCache, async (req, res) => {
 
 const startServer = async () => {
   await connectRedis ();
+  await initDB();
   app.listen(PORT, () => {
     console.log(`Memoria Gateway is running on port ${PORT}`);
   });
