@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { getEmbedding } from "../services/vector.js";
 import pool from "../services/postgres.js";
+import redisClient from "../services/redis.js";
 
 export const checkSemanticCache = async (
   req: Request,
@@ -31,8 +32,17 @@ export const checkSemanticCache = async (
         `Top Semantic Match Score: ${(match.similarity * 100).toFixed(2)}%`,
       );
 
-      if (match.similarity > 0.90) {
+      if (match.similarity > 0.9) {
         console.log(`Cache Hit! Served from PostgreSQL`);
+
+        if (req.body.cacheKey) {
+          await redisClient.setEx(
+            req.body.cacheKey,
+            3600,
+            JSON.stringify(match.response),
+          );
+          console.log(`Promoted L2 Semantic Hit to L1 Redis Cache`);
+        }
 
         res.json({
           source: "postgres_semantic_cache",
