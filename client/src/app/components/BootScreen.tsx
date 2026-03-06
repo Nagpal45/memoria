@@ -31,7 +31,7 @@ export function BootScreen({ onBootComplete }: BootScreenProps) {
 
       while (!isAwake && attempts < maxAttempts) {
         try {
-          const response = await fetch(`${API_URL}/health`, {
+          const response = await fetch(`${API_URL}/api/health`, {
             cache: "no-store",
           });
 
