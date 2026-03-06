@@ -5,7 +5,7 @@ from sentence_transformers import SentenceTransformer
 app = FastAPI(title="Memoria Vector Engine")
 
 print("Loading ML Model (this takes a few seconds the first time)...")
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = SentenceTransformer('BAAI/bge-small-en-v1.5')
 print("Model loaded successfully!")
 
 class TextPayload(BaseModel):
