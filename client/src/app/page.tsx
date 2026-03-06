@@ -4,7 +4,6 @@ import { useState, FormEvent, useRef, useEffect } from "react";
 import {
   Terminal,
   Database,
-  Activity,
   Cpu,
   Loader2,
   GitMerge,
@@ -17,6 +16,14 @@ export default function Dashboard() {
   const [prompt, setPrompt] = useState("");
   const [output, setOutput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // TELEMETRY STATE
+  const [source, setSource] = useState<string>("WAITING...");
+  const [ttft, setTtft] = useState<number>(0);
+  const [velocity, setVelocity] = useState<number>(0);
+  const [similarity, setSimilarity] = useState<number>(0);
+  const [vector, setVector] = useState<number[]>([]);
+
   const outputEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,25 +36,90 @@ export default function Dashboard() {
 
     setIsGenerating(true);
     setOutput("");
+    setSource("ROUTING...");
+    setTtft(0);
+    setVelocity(0);
+    setSimilarity(0);
+    setVector([]);
 
-    setOutput("Initialize semantic query...\n");
-    setTimeout(() => setOutput((prev) => prev + "Cache Miss detected.\n"), 500);
-    setTimeout(
-      () =>
-        setOutput(
-          (prev) => prev + "Routing to primary LLM (llama-3.3-70b)...\n\n",
-        ),
-      1000,
-    );
-    setTimeout(() => {
+    const reqStartTime = Date.now();
+    let tokenCount = 0;
+
+    try {
+      const res = await fetch("http://localhost:3000/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!res.ok) throw new Error("Gateway failed to respond.");
+
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let buffer = "";
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            const trimmedLine = line.trim();
+            if (trimmedLine.startsWith("data: ")) {
+              const dataStr = trimmedLine.slice(6);
+
+              if (dataStr === "[DONE]") {
+                setIsGenerating(false);
+                break;
+              }
+
+              try {
+                const parsed = JSON.parse(dataStr);
+
+                if (parsed.event === "metadata") {
+                  setTtft(Date.now() - reqStartTime);
+                  setSource(parsed.source);
+
+                  if (parsed.similarity) setSimilarity(parsed.similarity);
+                  if (parsed.vector) setVector(parsed.vector);
+                } else if (parsed.text) {
+                  setOutput((prev) => prev + parsed.text);
+                  tokenCount++;
+
+                  const elapsedSeconds = (Date.now() - reqStartTime) / 1000;
+                  if (elapsedSeconds > 0) {
+                    setVelocity(Math.round(tokenCount / elapsedSeconds));
+                  }
+                }
+              } catch (err) {
+                console.error("SSE Parse Error:", dataStr);
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error(error);
       setOutput(
-        (prev) =>
-          prev +
-          "Here is the generated response based on the context provided. ",
+        (prev) => prev + "\n\n[SYS_ERROR] Connection to Gateway Failed.",
       );
+    } finally {
       setIsGenerating(false);
-    }, 2000);
+    }
   };
+
+  const isCacheHit = source.includes("cache");
+  const displaySource =
+    source === "redis_cache"
+      ? "L1: Redis Exact"
+      : source === "postgres_semantic_cache"
+        ? "L2: pgvector Semantic"
+        : source.replace("llm_generated_", "LLM: ");
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50 font-sans selection:bg-indigo-500/30">
@@ -73,6 +145,7 @@ export default function Dashboard() {
 
       {/* MAIN LAYOUT */}
       <main className="max-w-[1600px] mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-55px)]">
+        {/* LEFT PANEL */}
         <section className="col-span-1 lg:col-span-7 flex flex-col gap-4 h-full">
           <form
             onSubmit={handleExecute}
@@ -104,14 +177,22 @@ export default function Dashboard() {
             {/* DYNAMIC TAG RIBBON (METADATA) */}
             <div className="flex items-center gap-3 px-4 py-3 bg-zinc-950/50 text-[11px] font-mono uppercase tracking-wider text-zinc-500 overflow-x-auto">
               <span className="flex items-center gap-1.5 px-2 py-1 rounded bg-zinc-800/50 text-zinc-300 border border-zinc-700/50">
-                <Cpu size={12} className="text-indigo-400" /> Llama-3.3-70b
+                <Cpu
+                  size={12}
+                  className={isCacheHit ? "text-zinc-500" : "text-indigo-400"}
+                />
+                {source.includes("llm") ? displaySource : "LLM Standby"}
               </span>
               <span className="flex items-center gap-1.5 px-2 py-1 rounded bg-zinc-800/50 text-zinc-300 border border-zinc-700/50">
-                <Database size={12} className="text-emerald-400" /> pgvector
-                Active
-              </span>
-              <span className="flex items-center gap-1.5 px-2 py-1 rounded bg-zinc-800/50 text-zinc-300 border border-zinc-700/50">
-                <Activity size={12} className="text-amber-400" /> Rate: 1/15
+                <Database
+                  size={12}
+                  className={
+                    source.includes("cache")
+                      ? "text-emerald-400"
+                      : "text-zinc-500"
+                  }
+                />
+                {source.includes("cache") ? displaySource : "Cache Miss"}
               </span>
             </div>
           </form>
@@ -134,6 +215,7 @@ export default function Dashboard() {
           </div>
         </section>
 
+        {/* RIGHT PANEL */}
         <section className="col-span-1 lg:col-span-5 flex flex-col gap-4 h-full overflow-hidden">
           {/* PIPELINE TRACE*/}
           <div className="flex-[3.5] rounded-xl border border-zinc-800 bg-zinc-900/30 p-5 flex flex-col min-h-0">
@@ -144,13 +226,9 @@ export default function Dashboard() {
                   Request Trace
                 </h2>
               </div>
-              <span className="text-[10px] font-mono text-zinc-500 bg-zinc-800/50 px-2 py-0.5 rounded tracking-tighter">
-                REQ_8F2A9
-              </span>
             </div>
-
-            <div className="flex-1 border border-dashed border-zinc-800/80 bg-zinc-950/30 rounded-lg flex items-center justify-center text-zinc-600 text-xs font-mono">
-              [ React Node Graph Placeholder ]
+            <div className="flex-1 border border-dashed border-zinc-800/80 bg-zinc-950/30 rounded-lg flex items-center justify-center text-zinc-400 text-sm font-mono tracking-widest uppercase">
+              TARGET: {displaySource}
             </div>
           </div>
 
@@ -169,7 +247,7 @@ export default function Dashboard() {
                   TTFT
                 </div>
                 <div className="text-xl font-semibold text-zinc-200">
-                  245
+                  {ttft}{" "}
                   <span className="text-xs text-zinc-500 ml-1 font-normal">
                     ms
                   </span>
@@ -180,7 +258,7 @@ export default function Dashboard() {
                   Velocity
                 </div>
                 <div className="text-xl font-semibold text-zinc-200">
-                  142
+                  {velocity}{" "}
                   <span className="text-xs text-zinc-500 ml-1 font-normal">
                     T/s
                   </span>
@@ -188,9 +266,8 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Sparkline*/}
             <div className="flex-1 border border-dashed border-zinc-800/80 bg-zinc-950/30 rounded-lg flex items-center justify-center text-zinc-600 text-xs font-mono">
-              [ Recharts Latency Sparkline ]
+              [ Sparkline Active ]
             </div>
           </div>
 
@@ -206,7 +283,9 @@ export default function Dashboard() {
             <div className="flex gap-6 h-full items-center">
               {/* Circular Gauge */}
               <div className="aspect-square h-full max-h-32 border-2 border-dashed border-cyan-900/50 rounded-full flex items-center justify-center flex-col shrink-0">
-                <span className="text-2xl font-bold text-cyan-400">94%</span>
+                <span className="text-2xl font-bold text-cyan-400">
+                  {similarity > 0 ? `${(similarity * 100).toFixed(0)}%` : "--"}
+                </span>
                 <span className="text-[8px] text-zinc-500 uppercase tracking-widest">
                   Match
                 </span>
@@ -219,9 +298,9 @@ export default function Dashboard() {
                   <Layers size={10} />
                 </div>
                 <div className="text-[11px] text-zinc-600 font-mono break-all leading-relaxed line-clamp-6">
-                  [0.0124, -0.0452, 0.8810, 0.1129, -0.9931, 0.3341, -0.0012,
-                  0.5542, 0.1123, -0.4432, 0.221, -0.992, 0.112, 0.443,
-                  -0.112...]
+                  {vector.length > 0
+                    ? `[${vector.join(", ")}...]`
+                    : "[ Awaiting L2 Cache... ]"}
                 </div>
               </div>
             </div>
