@@ -32,6 +32,7 @@ export const rateLimiter = async (
     const requestCount = (results[2] as unknown) as number;
 
     if (requestCount > MAX_REQUESTS_PER_WINDOW) {
+      redisClient.zRem(key, value).catch(console.error);
       console.warn(`Rate limit hit for IP: ${ip} (${requestCount} requests)`);
       res.status(429).json({
         error: "Too Many Requests",
