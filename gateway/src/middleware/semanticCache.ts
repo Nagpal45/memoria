@@ -47,11 +47,18 @@ export const checkSemanticCache = async (
           // console.log(`Promoted L2 Semantic Hit to L1 Redis Cache`);
         }
 
-        res.setHeader('Content-Type', 'text/event-stream');
-        res.setHeader('Cache-Control', 'no-cache');
-        res.setHeader('Connection', 'keep-alive');
-        
-        res.write(`data: ${JSON.stringify({ event: 'metadata', source: 'postgres_semantic_cache' })}\n\n`);
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+
+        const metadataPacket = {
+          event: "metadata",
+          source: "postgres_semantic_cache",
+          similarity: match.similarity,
+          vector: embedding.slice(0, 15),
+        };
+
+        res.write(`data: ${JSON.stringify(metadataPacket)}\n\n`);
         res.write(`data: ${JSON.stringify({ text: match.response })}\n\n`);
         res.write(`data: [DONE]\n\n`);
         res.end();
@@ -64,9 +71,9 @@ export const checkSemanticCache = async (
           similarity_score: match.similarity,
         });
         return;
-      // } else {
-      //   console.log(`Match too low. Forwarding to LLM...`);
-      // }
+        // } else {
+        //   console.log(`Match too low. Forwarding to LLM...`);
+        // }
       }
     }
 
