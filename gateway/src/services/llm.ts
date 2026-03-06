@@ -12,7 +12,7 @@ const attemptStream = async (prompt: string, target: ModelTarget, res: Response)
 
     if (target === 'hf_coder') {
         const stream = hf.chatCompletionStream({
-            model: "Qwen/Qwen2.5-Coder-32B-Instruct",
+            model: "Qwen/Qwen2.5-Coder-7B-Instruct",
             messages: [{ role: 'user', content: prompt }],
         });
         for await (const chunk of stream) {

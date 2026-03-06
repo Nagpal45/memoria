@@ -19,7 +19,7 @@ type NodeState = "idle" | "evaluating" | "hit" | "miss" | "active";
 const LLM_MODELS = [
   {
     id: "hf_coder",
-    label: "Qwen 2.5 Coder 32B",
+    label: "Qwen 2.5 Coder 7B",
     sub: "HF Inference — Code",
     icon: Cloud,
   },

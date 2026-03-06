@@ -37,7 +37,7 @@ export const SOURCE_COLORS: Record<string, string> = {
 export const SOURCE_LABELS: Record<string, string> = {
   redis_cache: "L1 Redis Cache",
   postgres_semantic_cache: "L2 Semantic Cache",
-  llm_generated_hf_coder: "Qwen 2.5 Coder 32B (HF)",
+  llm_generated_hf_coder: "Qwen 2.5 Coder 7B (HF)",
   llm_generated_cloud_llama_70b: "Llama 3.3 70B (Groq)",
   llm_generated_cloud_llama_8b: "Llama 3.1 8B (Groq)",
   llm_generated_local_llama3: "Llama 3.2 (Local)",
