@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useTransition, useState, useEffect } from "react";
 import { Terminal, BarChart3, Gauge, Loader2 } from "lucide-react";
 
 const navItems = [
@@ -62,12 +62,37 @@ export function Navbar() {
 
         {/* Status Indicator */}
         <div className="flex items-center gap-4 text-[10px] font-mono tracking-widest uppercase text-zinc-400">
-          <span className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-zinc-900/50 rounded-full border border-zinc-800">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            SYSTEM ONLINE
-          </span>
+          <SystemStatus />
         </div>
       </div>
     </header>
+  );
+}
+
+function SystemStatus() {
+  const [load, setLoad] = useState(12);
+  const [ping, setPing] = useState(45);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLoad((prev) => Math.max(5, Math.min(85, prev + (Math.random() * 8 - 4))));
+      setPing((prev) => Math.max(20, Math.min(150, prev + (Math.random() * 20 - 10))));
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <span className="hidden sm:flex items-center gap-3 px-3 py-1.5 bg-zinc-900/50 rounded-full border border-zinc-800">
+      <div className="flex items-center gap-1.5">
+        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+        <span className="text-zinc-200 font-medium">SYS_OK</span>
+      </div>
+      <div className="w-[1px] h-3 bg-zinc-800" />
+      <span className="text-zinc-400 font-medium whitespace-nowrap">LOAD: {load.toFixed(1)}%</span>
+      <div className="w-[1px] h-3 bg-zinc-800" />
+      <span className="text-zinc-400 font-medium whitespace-nowrap">{ping.toFixed(0)}mS</span>
+      <div className="w-[1px] h-3 bg-zinc-800" />
+      <span className="text-cyan-500/80 font-medium whitespace-nowrap">15 REQ/MIN</span>
+    </span>
   );
 }
