@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Terminal, BarChart3, Gauge } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useTransition } from "react";
+import { Terminal, BarChart3, Gauge, Loader2 } from "lucide-react";
 
 const navItems = [
   { href: "/", label: "Playground", icon: Terminal },
@@ -11,6 +12,14 @@ const navItems = [
 
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  const handleNav = (href: string) => {
+    startTransition(() => {
+      router.push(href);
+    });
+  };
 
   return (
     <header className="border-b border-zinc-800/50 bg-zinc-900/60 backdrop-blur-xl sticky top-0 z-50">
@@ -31,20 +40,23 @@ export function Navbar() {
             {navItems.map(({ href, label, icon: Icon }) => {
               const isActive = pathname === href;
               return (
-                <Link
+                <button
                   key={href}
-                  href={href}
+                  onClick={() => handleNav(href)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium tracking-wide transition-all ${
                     isActive
                       ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                      : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+                      : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 border border-transparent"
                   }`}
                 >
                   <Icon size={14} />
                   {label}
-                </Link>
+                </button>
               );
             })}
+            {isPending && (
+              <Loader2 size={14} className="text-cyan-500 animate-spin ml-2" />
+            )}
           </nav>
         </div>
 
