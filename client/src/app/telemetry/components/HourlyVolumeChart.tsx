@@ -44,12 +44,14 @@ export function HourlyVolumeChart({ data }: HourlyVolumeChartProps) {
               />
               <RechartsTooltip
                 contentStyle={TOOLTIP_STYLE}
+                itemStyle={{ color: "#e4e4e7" }}
+                cursor={{ fill: "transparent" }}
                 formatter={(v: unknown, name: unknown) => [
                   name === "requests" ? `${v} reqs` : `${v}ms`,
                   name === "requests" ? "Requests" : "Avg Latency",
                 ]}
               />
-              <Bar dataKey="requests" radius={[6, 6, 0, 0]}>
+              <Bar dataKey="requests" radius={[6, 6, 0, 0]} activeBar={false}>
                 {data.map((_, i) => (
                   <Cell key={i} fill={i === data.length - 1 ? "#06b6d4" : "#27272a"} />
                 ))}

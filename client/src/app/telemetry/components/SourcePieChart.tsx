@@ -44,7 +44,10 @@ export function SourcePieChart({ data }: SourcePieChartProps) {
                   <Cell key={index} fill={entry.color} />
                 ))}
               </Pie>
-              <RechartsTooltip contentStyle={TOOLTIP_STYLE} />
+              <RechartsTooltip 
+                contentStyle={TOOLTIP_STYLE} 
+                itemStyle={{ color: "#e4e4e7" }} 
+              />
               <Legend
                 verticalAlign="bottom"
                 formatter={(value: string) => (

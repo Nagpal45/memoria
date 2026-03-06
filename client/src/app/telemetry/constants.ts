@@ -54,5 +54,5 @@ export const TOOLTIP_STYLE = {
   border: "1px solid #27272a",
   borderRadius: "12px",
   fontSize: "11px",
-  color: "#a1a1aa",
+  color: "#e4e4e7",
 } as const;

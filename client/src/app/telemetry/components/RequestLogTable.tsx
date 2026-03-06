@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Clock, Search } from "lucide-react";
 import { SOURCE_COLORS, SOURCE_LABELS } from "../constants";
 import type { TelemetryLog } from "../constants";
@@ -21,6 +21,11 @@ export function RequestLogTable({
   onSearchChange,
 }: RequestLogTableProps) {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState<number>(50);
+
+  useEffect(() => {
+    setVisibleCount(50);
+  }, [filter, searchQuery]);
 
   return (
     <div className="rounded-2xl border border-zinc-800/60 bg-gradient-to-b from-zinc-900/50 to-zinc-950/80 p-5">
@@ -31,7 +36,7 @@ export function RequestLogTable({
             Request Log
           </h3>
           <span className="text-[9px] font-mono text-zinc-600">
-            ({logs.length} entries)
+            ({Math.min(visibleCount, logs.length)} / {logs.length} entries shown)
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -75,7 +80,7 @@ export function RequestLogTable({
             </tr>
           </thead>
           <tbody>
-            {logs.slice(0, 50).map((log) => {
+            {logs.slice(0, visibleCount).map((log) => {
               const color = SOURCE_COLORS[log.source] || "#71717a";
               const isExpanded = expandedRow === log._id;
               return (
@@ -94,6 +99,17 @@ export function RequestLogTable({
         {logs.length === 0 && (
           <div className="flex items-center justify-center py-12">
             <p className="text-zinc-600 text-xs font-mono">No matching telemetry entries</p>
+          </div>
+        )}
+
+        {visibleCount < logs.length && (
+          <div className="flex justify-center py-4 border-t border-zinc-800/50">
+            <button
+              onClick={() => setVisibleCount((prev) => prev + 50)}
+              className="px-4 py-2 bg-zinc-800/50 hover:bg-zinc-800 rounded-lg text-xs font-mono text-zinc-300 transition-colors"
+            >
+              Load More
+            </button>
           </div>
         )}
       </div>
@@ -115,10 +131,10 @@ function LogRow({
   return (
     <>
       <tr
-        className="border-b border-zinc-800/30 hover:bg-zinc-800/10 cursor-pointer transition-colors"
+        className="border-b border-zinc-800/30 hover:bg-zinc-800 cursor-pointer transition-colors group"
         onClick={onToggle}
       >
-        <td className="py-3 pr-4 text-[10px] text-zinc-500 font-mono whitespace-nowrap">
+        <td className="py-3 pr-4 text-[10px] text-zinc-500 group-hover:text-zinc-300 font-mono whitespace-nowrap">
           {new Date(log.timestamp).toLocaleString([], {
             month: "short",
             day: "numeric",
@@ -127,7 +143,7 @@ function LogRow({
             second: "2-digit",
           })}
         </td>
-        <td className="py-3 pr-4 text-[11px] text-zinc-300 max-w-[300px] truncate">
+        <td className="py-3 pr-4 text-[11px] text-zinc-300 group-hover:text-zinc-100 max-w-[300px] truncate">
           {log.prompt}
         </td>
         <td className="py-3 pr-4">
@@ -143,11 +159,11 @@ function LogRow({
             {SOURCE_LABELS[log.source] || log.source}
           </span>
         </td>
-        <td className="py-3 pr-4 text-right text-[11px] font-mono text-zinc-400">
+        <td className="py-3 pr-4 text-right text-[11px] font-mono text-zinc-400 group-hover:text-zinc-200">
           {log.latency_ms}
-          <span className="text-zinc-600 text-[9px] ml-0.5">ms</span>
+          <span className="text-zinc-600 group-hover:text-zinc-400 text-[9px] ml-0.5">ms</span>
         </td>
-        <td className="py-3 text-right text-[11px] font-mono text-zinc-400">
+        <td className="py-3 text-right text-[11px] font-mono text-zinc-400 group-hover:text-zinc-200">
           {log.similarity_score
             ? `${(log.similarity_score * 100).toFixed(1)}%`
             : "—"}
