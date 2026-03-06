@@ -28,6 +28,7 @@ const telemetrySchema = new mongoose.Schema({
     enum: [
       "redis_cache",
       "postgres_semantic_cache",
+      "llm_generated_hf_coder",
       "llm_generated_cloud_llama_70b",
       "llm_generated_cloud_llama_8b",
       "llm_generated_local_llama3",

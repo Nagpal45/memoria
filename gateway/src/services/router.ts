@@ -1,11 +1,17 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-export type ModelTarget = 'cloud_llama_70b' | 'cloud_llama_8b' | 'local_llama3';
+export type ModelTarget = 'hf_coder' | 'cloud_llama_70b' | 'cloud_llama_8b' | 'local_llama3';
 
 export const determineRouteChain = (prompt: string): ModelTarget[] => {
     const isProd = process.env.NODE_ENV === 'production';
     const normalizedPrompt = prompt.toLowerCase();
+
+    if (normalizedPrompt.match(/(bash|docker|aws|script|react|typescript|kubernetes|devops|code)/)) {
+        return isProd
+            ? ['hf_coder', 'cloud_llama_70b', 'cloud_llama_8b']
+            : ['hf_coder', 'cloud_llama_70b', 'local_llama3'];
+    }
 
     const requiresJSON = /json|array|object|structure format/.test(normalizedPrompt);
     const containsCodeSyntax = /```|function|const|let|=>|class|interface|npm install|react/.test(normalizedPrompt);

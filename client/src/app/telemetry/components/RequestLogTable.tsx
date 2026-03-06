@@ -60,6 +60,7 @@ export function RequestLogTable({
             <option value="all">All Sources</option>
             <option value="redis_cache">Redis Cache</option>
             <option value="postgres_semantic_cache">Semantic Cache</option>
+            <option value="llm_generated_hf_coder">Qwen Coder 32B</option>
             <option value="llm_generated_cloud_llama_70b">Llama 70B</option>
             <option value="llm_generated_cloud_llama_8b">Llama 8B</option>
             <option value="llm_generated_local_llama3">Local Llama</option>

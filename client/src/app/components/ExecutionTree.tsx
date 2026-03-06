@@ -18,6 +18,12 @@ type NodeState = "idle" | "evaluating" | "hit" | "miss" | "active";
 
 const LLM_MODELS = [
   {
+    id: "hf_coder",
+    label: "Qwen 2.5 Coder 32B",
+    sub: "HF Inference — Code",
+    icon: Cloud,
+  },
+  {
     id: "cloud_llama_70b",
     label: "Llama 3.3 70B",
     sub: "Groq Cloud — Versatile",

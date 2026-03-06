@@ -1,14 +1,27 @@
 import type { Response } from 'express';
 import Groq from 'groq-sdk';
+import { InferenceClient } from '@huggingface/inference';
 import type { ModelTarget } from './router.js';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const hf = new InferenceClient(process.env.HUGGINGFACE_API_KEY)
 
 
 const attemptStream = async (prompt: string, target: ModelTarget, res: Response): Promise<string> => {
     let fullResponse = '';
 
-    if (target === 'cloud_llama_70b') {
+    if (target === 'hf_coder') {
+        const stream = hf.chatCompletionStream({
+            model: "Qwen/Qwen2.5-Coder-32B-Instruct",
+            messages: [{ role: 'user', content: prompt }],
+        });
+        for await (const chunk of stream) {
+            const token = chunk.choices[0]?.delta?.content || '';
+            fullResponse += token;
+            if (token) res.write(`data: ${JSON.stringify({ text: token })}\n\n`);
+        }
+    }
+    else if (target === 'cloud_llama_70b') {
         const stream = await groq.chat.completions.create({
             messages: [{ role: 'user', content: prompt }],
             model: 'llama-3.3-70b-versatile', 
