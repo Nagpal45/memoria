@@ -6,6 +6,7 @@ import { initDB } from "./services/postgres.js";
 import { connectMongo } from "./services/mongo.js";
 import cors from "cors";
 import generateRoute from "./routes/generate.js";
+import telemetryRoute from "./routes/telemetry.js";
 
 dotenv.config();
 const app = express();
@@ -23,7 +24,8 @@ app.use(express.json());
 
 app.use("/api/", rateLimiter);
 
-app.use("/api/generate", generateRoute)
+app.use("/api/generate", generateRoute);
+app.use("/api/telemetry", telemetryRoute);
 
 const startServer = async () => {
   await connectRedis();
