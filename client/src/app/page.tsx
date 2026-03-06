@@ -28,6 +28,7 @@ import { StatusPill } from "./components/StatusPill";
 import { MetricCard } from "./components/MetricCard";
 import { SimilarityGauge } from "./components/SimilarityGauge";
 import { ExecutionTree } from "./components/ExecutionTree";
+import { MarkdownRenderer } from "./components/MarkdownRenderer";
 
 export default function Dashboard() {
   const [prompt, setPrompt] = useState("Explain quantum computing in 2 sentences.");
@@ -246,8 +247,8 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : (
-              <div className="whitespace-pre-wrap">
-                {output}
+              <div className="prose prose-invert prose-zinc max-w-none text-zinc-300">
+                <MarkdownRenderer content={output} />
                 {isGenerating && (
                   <motion.span
                     className="inline-block w-2 h-4 ml-1 bg-cyan-500 align-middle rounded-sm"
