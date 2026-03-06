@@ -8,7 +8,7 @@ export const getEmbedding = async (prompt: string): Promise<number[]> => {
     const isProd = process.env.NODE_ENV === 'production';
 
     if (isProd) {
-        console.log('Generating embedding via Hugging Face SDK...');
+        // console.log('Generating embedding via Hugging Face SDK...');
         
         try {
             const output = await hf.featureExtraction({
@@ -24,7 +24,7 @@ export const getEmbedding = async (prompt: string): Promise<number[]> => {
         }
 
     } else {
-        console.log('Generating embedding via Local Python Worker...');
+        // console.log('Generating embedding via Local Python Worker...');
         
         const response = await fetch('http://localhost:8000/embed', {
             method: 'POST',
