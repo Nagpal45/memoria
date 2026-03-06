@@ -72,7 +72,7 @@ export default function Dashboard() {
     let tokenCount = 0;
 
     try {
-      const res = await fetch("http://localhost:3000/api/generate", {
+      const res = await fetch("https://memoria-kz86.onrender.com/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt }),

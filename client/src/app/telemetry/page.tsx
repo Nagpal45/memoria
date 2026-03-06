@@ -50,8 +50,8 @@ export default function TelemetryPage() {
     startTransition(async () => {
       try {
         const [statsRes, logsRes] = await Promise.all([
-          fetch("http://localhost:3000/api/telemetry/stats"),
-          fetch("http://localhost:3000/api/telemetry"),
+          fetch("https://memoria-kz86.onrender.com/api/telemetry/stats"),
+          fetch("https://memoria-kz86.onrender.com/api/telemetry"),
         ]);
         if (!statsRes.ok || !logsRes.ok) throw new Error("Failed to fetch telemetry data");
         setStats(await statsRes.json());
