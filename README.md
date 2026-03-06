@@ -69,8 +69,6 @@ The production infrastructure is globally distributed but regionally optimized. 
 * **Vector Database:** Managed via **Neon.tech** (AWS Singapore).
 * **Telemetry Logs:** Managed via **MongoDB Atlas** (AWS Singapore).
 
-*(Note: The Render gateway is kept 'warm' via a cron-job heartbeat to bypass cold-start execution delays).*
-
 ---
 
 ## 💻 Local Setup & Development
