@@ -30,9 +30,17 @@ import { SimilarityGauge } from "./components/SimilarityGauge";
 import { ExecutionTree } from "./components/ExecutionTree";
 import { MarkdownRenderer } from "./components/MarkdownRenderer";
 
+import { BootScreen } from "./components/BootScreen";
+
 export default function Dashboard() {
-  const [prompt, setPrompt] = useState("Explain quantum computing in 2 sentences.");
-  const [output, setOutput] = useState("Quantum computing is a rapidly-emerging technology that harnesses the laws of quantum mechanics to solve problems too complex for classical computers. It uses quantum bits (Qubits) that can exist in multiple states simultaneously, allowing for exponentially faster calculations.");
+  const [isBooting, setIsBooting] = useState(true);
+
+  const [prompt, setPrompt] = useState(
+    "Explain quantum computing in 2 sentences.",
+  );
+  const [output, setOutput] = useState(
+    "Quantum computing is a rapidly-emerging technology that harnesses the laws of quantum mechanics to solve problems too complex for classical computers. It uses quantum bits (Qubits) that can exist in multiple states simultaneously, allowing for exponentially faster calculations.",
+  );
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Telemetry state
@@ -40,7 +48,9 @@ export default function Dashboard() {
   const [ttft, setTtft] = useState<number>(45);
   const [velocity, setVelocity] = useState<number>(180);
   const [similarity, setSimilarity] = useState<number>(0.92);
-  const [vector, setVector] = useState<number[]>([0.1, -0.2, 0.5, 0.4, -0.1, 0.8]);
+  const [vector, setVector] = useState<number[]>([
+    0.1, -0.2, 0.5, 0.4, -0.1, 0.8,
+  ]);
   const [activeModel, setActiveModel] = useState<string>("");
   const [failedModels, setFailedModels] = useState<string[]>([]);
 
@@ -72,11 +82,14 @@ export default function Dashboard() {
     let tokenCount = 0;
 
     try {
-      const res = await fetch("https://memoria-kz86.onrender.com/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
+      const res = await fetch(
+        "https://memoria-kz86.onrender.com/api/generate",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt }),
+        },
+      );
 
       if (!res.ok) throw new Error("Gateway failed to respond.");
 
@@ -157,6 +170,10 @@ export default function Dashboard() {
         : source.startsWith("llm_generated_")
           ? "LLM: " + source.replace("llm_generated_", "")
           : source;
+
+  if (isBooting) {
+    return <BootScreen onBootComplete={() => setIsBooting(false)} />;
+  }
 
   return (
     <div className="h-[calc(100vh-60px)] overflow-hidden bg-zinc-950 text-zinc-50 font-sans selection:bg-cyan-500/30">

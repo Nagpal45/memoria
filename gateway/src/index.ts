@@ -24,6 +24,9 @@ app.use(express.json());
 
 app.use("/api/", rateLimiter);
 
+app.use("/api/health", (_req, res) => {
+  res.status(200).json({ status: 'Gateway is awake and ready.' });
+});
 app.use("/api/generate", generateRoute);
 app.use("/api/telemetry", telemetryRoute);
 
