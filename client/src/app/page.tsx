@@ -30,16 +30,16 @@ import { SimilarityGauge } from "./components/SimilarityGauge";
 import { ExecutionTree } from "./components/ExecutionTree";
 
 export default function Dashboard() {
-  const [prompt, setPrompt] = useState("");
-  const [output, setOutput] = useState("");
+  const [prompt, setPrompt] = useState("Explain quantum computing in 2 sentences.");
+  const [output, setOutput] = useState("Quantum computing is a rapidly-emerging technology that harnesses the laws of quantum mechanics to solve problems too complex for classical computers. It uses quantum bits (Qubits) that can exist in multiple states simultaneously, allowing for exponentially faster calculations.");
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Telemetry state
-  const [source, setSource] = useState<string>("WAITING...");
-  const [ttft, setTtft] = useState<number>(0);
-  const [velocity, setVelocity] = useState<number>(0);
-  const [similarity, setSimilarity] = useState<number>(0);
-  const [vector, setVector] = useState<number[]>([]);
+  const [source, setSource] = useState<string>("postgres_semantic_cache");
+  const [ttft, setTtft] = useState<number>(45);
+  const [velocity, setVelocity] = useState<number>(180);
+  const [similarity, setSimilarity] = useState<number>(0.92);
+  const [vector, setVector] = useState<number[]>([0.1, -0.2, 0.5, 0.4, -0.1, 0.8]);
   const [activeModel, setActiveModel] = useState<string>("");
   const [failedModels, setFailedModels] = useState<string[]>([]);
 
@@ -185,7 +185,7 @@ export default function Dashboard() {
           {/* Prompt */}
           <form
             onSubmit={handleExecute}
-            className="rounded-2xl border border-zinc-800/60 bg-zinc-900/40 shadow-2xl flex flex-col transition-all focus-within:border-cyan-500/40 focus-within:shadow-cyan-500/5 shrink-0"
+            className="rounded-2xl border bg-zinc-900/40 shadow-2xl flex flex-col transition-all border-cyan-500/40 focus-within:shadow-cyan-500/5 shrink-0"
           >
             <div className="flex items-center px-5 py-4 gap-3">
               <ChevronRight size={16} className="text-cyan-500 shrink-0" />
