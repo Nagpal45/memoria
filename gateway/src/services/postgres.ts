@@ -3,19 +3,19 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// const pool = new Pool({
-//     connectionString: process.env.DATABASE_URL,
-//     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-// });
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
 //local dev
-const pool = new Pool({
-    user: process.env.POSTGRES_USER || 'postgres',
-    host: process.env.POSTGRES_HOST || 'localhost',
-    database: process.env.POSTGRES_NAME || 'postgres',
-    password: process.env.POSTGRES_PASSWORD || 'password',
-    port: parseInt(process.env.POSTGRES_PORT || '5432'),
-});
+// const pool = new Pool({
+//     user: process.env.POSTGRES_USER || 'postgres',
+//     host: process.env.POSTGRES_HOST || 'localhost',
+//     database: process.env.POSTGRES_NAME || 'postgres',
+//     password: process.env.POSTGRES_PASSWORD || 'password',
+//     port: parseInt(process.env.POSTGRES_PORT || '5432'),
+// });
 
 export const initDB = async () => {
     try {
