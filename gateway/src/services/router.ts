@@ -19,22 +19,65 @@ const cosineSimilarity = (vecA: number[], vecB: number[]) => {
 };
 
 const INTENT_ANCHORS = {
-    CODE: "Write code, programming, bash script, debug errors, typescript, react, devops, docker, kubernetes, software engineering, function, syntax",
-    MATH: "JSON output, structured data, arrays, objects, calculate math equations, solve math problems, calculus, algebra, formatting",
-    CREATIVE: "Write a story, compose an essay, creative writing, brainstorm ideas, blog post, fictional, imaginative narrative",
-    GENERAL: "General knowledge, answering simple questions, chatting, everyday topics, casual conversation"
+    CODE: [
+        "Write a python script to reverse a string",
+        "How do I debug a segmentation fault in C++?",
+        "Explain React hooks to a beginner",
+        "Docker compose file for Node and Redis",
+        "Write a bash script to parse JSON",
+        "What is the time complexity of quicksort?"
+    ],
+    MATH: [
+        "Solve this differential equation",
+        "Calculate the probability of drawing two aces",
+        "Explain the Pythagorean theorem",
+        "Convert this data into a JSON object",
+        "Format this list as a structured array",
+        "What is the integral of x^2?"
+    ],
+    CREATIVE: [
+        "Write a story about a brave knight",
+        "Compose a poem about the sea",
+        "Brainstorm 5 ideas for a sci-fi novel",
+        "Write a blog post about healthy eating",
+        "Imagine a world where coffee is illegal"
+    ],
+    GENERAL: [
+        "What is the capital of France?",
+        "Who wrote To Kill a Mockingbird?",
+        "Tell me a joke",
+        "What's the weather like usually in London?",
+        "Hi, how are you doing today?",
+        "Summarize the history of Rome"
+    ]
 };
 
-const intentEmbeddings: Record<string, number[]> = {};
+const intentCentroids: Record<string, number[]> = {};
+
+// Helper to average multiple vectors to create a "centroid"
+const calculateCentroid = (vectors: number[][]): number[] => {
+    if (!vectors || vectors.length === 0) return [];
+    const dimensions = vectors[0]!.length;
+    const centroid = new Array(dimensions).fill(0);
+    for (const vec of vectors) {
+        for (let i = 0; i < dimensions; i++) {
+            centroid[i] += vec[i]!;
+        }
+    }
+    return centroid.map(val => val / vectors.length);
+};
 
 const loadIntentEmbeddings = async () => {
-    if (Object.keys(intentEmbeddings).length > 0) return;
+    if (Object.keys(intentCentroids).length > 0) return;
     try {
-        console.log("Initializing semantic router anchor embeddings...");
-        intentEmbeddings.CODE = await getEmbedding(INTENT_ANCHORS.CODE);
-        intentEmbeddings.MATH = await getEmbedding(INTENT_ANCHORS.MATH);
-        intentEmbeddings.CREATIVE = await getEmbedding(INTENT_ANCHORS.CREATIVE);
-        intentEmbeddings.GENERAL = await getEmbedding(INTENT_ANCHORS.GENERAL);
+        console.log("Initializing semantic router anchor centroids...");
+        for (const [intent, phrases] of Object.entries(INTENT_ANCHORS)) {
+            // Generate embeddings for all example phrases
+            const embeddings = await Promise.all(phrases.map(phrase => getEmbedding(phrase)));
+            // Calculate the centroid (average) vector for the cluster
+            intentCentroids[intent] = calculateCentroid(embeddings);
+        }
+        console.log("Centroids calculated successfully.");
     } catch (e) {
         console.error("Failed to load intent embeddings:", e);
     }
@@ -67,9 +110,9 @@ export const determineRouteChain = async (prompt: string, vector?: number[]): Pr
     let bestIntent = "GENERAL";
     let highestSimilarity = -1;
 
-    // Check cosine similarity against all anchors
-    for (const [intent, anchorVector] of Object.entries(intentEmbeddings)) {
-        const sim = cosineSimilarity(vector, anchorVector);
+    // Check cosine similarity against all anchor centroids
+    for (const [intent, centroidVector] of Object.entries(intentCentroids)) {
+        const sim = cosineSimilarity(vector, centroidVector);
         if (sim > highestSimilarity) {
             highestSimilarity = sim;
             bestIntent = intent;
