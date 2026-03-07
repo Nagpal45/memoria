@@ -61,7 +61,7 @@ Memoria supports dual environments: a fully local, air-gapped development enviro
 
 ## 🌍 Cloud Deployment Strategy
 
-The production infrastructure is globally distributed but regionally optimized. The Gateway and all managed databases are strictly collocated in the **Singapore (`ap-southeast-1`)** region to achieve `<5ms` internal network latency.
+The production infrastructure is globally distributed but regionally optimized. The Gateway and all managed databases are strictly collocated in the **Singapore (`ap-southeast-1`)** region to achieve low internal network latency.
 
 * **Frontend Interface:** Deployed on **Vercel** (Global Edge Network).
 * **API Gateway:** Deployed on **Render** (Singapore Node).
