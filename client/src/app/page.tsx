@@ -32,8 +32,15 @@ import { MarkdownRenderer } from "./components/MarkdownRenderer";
 
 import { BootScreen } from "./components/BootScreen";
 
+let hasAppBooted = false;
+
 export default function Dashboard() {
-  const [isBooting, setIsBooting] = useState(true);
+  const [isBooting, setIsBooting] = useState(!hasAppBooted);
+
+  const handleBootComplete = () => {
+    hasAppBooted = true;
+    setIsBooting(false);
+  };
 
   const [prompt, setPrompt] = useState(
     "Explain quantum computing in 2 sentences.",
@@ -172,7 +179,7 @@ export default function Dashboard() {
           : source;
 
   if (isBooting) {
-    return <BootScreen onBootComplete={() => setIsBooting(false)} />;
+    return <BootScreen onBootComplete={handleBootComplete} />;
   }
 
   return (
