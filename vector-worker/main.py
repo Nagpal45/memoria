@@ -5,7 +5,7 @@ from sentence_transformers import SentenceTransformer
 app = FastAPI(title="Memoria Vector Engine")
 
 print("Loading ML Model (this takes a few seconds the first time)...")
-model = SentenceTransformer('BAAI/bge-small-en-v1.5')
+model = SentenceTransformer('Snowflake/snowflake-arctic-embed-s')
 print("Model loaded successfully!")
 
 class TextPayload(BaseModel):

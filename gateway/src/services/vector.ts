@@ -12,7 +12,7 @@ export const getEmbedding = async (prompt: string): Promise<number[]> => {
         
         try {
             const output = await hf.featureExtraction({
-                model: "BAAI/bge-small-en-v1.5",
+                model: "Snowflake/snowflake-arctic-embed-s",
                 inputs: prompt,
             });
 

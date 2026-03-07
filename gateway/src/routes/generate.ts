@@ -20,13 +20,15 @@ router.post(
 
     try {
       const startTime = Date.now();
-      res.setHeader("Content-Type", "text/event-stream");
-      res.setHeader("Cache-Control", "no-cache");
-      res.setHeader("Connection", "keep-alive");
-
-      res.write(
+      
+      if (!res.headersSent) {
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+        res.write(
         `data: ${JSON.stringify({ event: "metadata", source: "llm_generated" })}\n\n`,
       );
+      }
 
       const vectorArray = typeof embedding === 'string' ? JSON.parse(embedding) : embedding;
       const routeChain = await determineRouteChain(prompt, vectorArray);

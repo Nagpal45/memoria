@@ -27,6 +27,10 @@ export const checkSemanticCache = async (
 
     const result = await pool.query(query, [embeddingString]);
 
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
     if (result.rows.length > 0) {
       const match = result.rows[0];
 
@@ -34,7 +38,7 @@ export const checkSemanticCache = async (
       //   `Top Semantic Match Score: ${(match.similarity * 100).toFixed(2)}%`,
       // );
 
-      if (match.similarity > 0.9) {
+      if (match.similarity > 0.95) {
         const latency = Date.now() - startTime;
         // console.log(`Cache Hit! Served from PostgreSQL`);
 
@@ -46,10 +50,6 @@ export const checkSemanticCache = async (
           );
           // console.log(`Promoted L2 Semantic Hit to L1 Redis Cache`);
         }
-
-        res.setHeader("Content-Type", "text/event-stream");
-        res.setHeader("Cache-Control", "no-cache");
-        res.setHeader("Connection", "keep-alive");
 
         const metadataPacket = {
           event: "metadata",
@@ -71,10 +71,24 @@ export const checkSemanticCache = async (
           similarity_score: match.similarity,
         });
         return;
-        // } else {
-        //   console.log(`Match too low. Forwarding to LLM...`);
-        // }
+      } else {
+        const metadataPacket = {
+          event: "metadata",
+          source: "postgres_semantic_cache_miss",
+          similarity: match.similarity,
+          vector: embedding.slice(0, 15),
+        };
+        res.write(`data: ${JSON.stringify(metadataPacket)}\n\n`);
       }
+    } else {
+      // Complete miss (no rows in DB)
+      const metadataPacket = {
+        event: "metadata",
+        source: "postgres_semantic_cache_miss",
+        similarity: 0,
+        vector: embedding.slice(0, 15),
+      };
+      res.write(`data: ${JSON.stringify(metadataPacket)}\n\n`);
     }
 
     req.body.embedding = embeddingString;
