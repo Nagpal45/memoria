@@ -15,13 +15,13 @@ Why pay for the same LLM generation twice? Memoria implements a two-step caching
 * **L1 Edge Cache (Redis):** Provides **0ms latency** for exact-match prompt hits.
 * **L2 Semantic Cache (PostgreSQL + pgvector):** Utilizes `BAAI/bge-small-en-v1.5` embeddings to perform mathematical similarity searches. If a user asks a question worded differently but with the exact same intent as a previous query, the gateway serves the cached response instantly.
 
-### 2. Mixture of Experts (MoE) Semantic Router
+### 2. Semantic Router
 Not all prompts require a massive 70B parameter model. Memoria intercepts incoming requests, analyzes the intent, and dynamically routes the prompt to specialized, purpose-built LLMs to optimize compute costs and speed:
 * **Math & Complex Logic:** Routed to heavy compute models (e.g., LLaMA-3.3-70B).
 * **DevOps & Code:** Routed to specialized coding models (e.g., Qwen2.5-Coder).
 * **Creative & General:** Routed to lightning-fast, lightweight models (e.g., LLaMA-3.1-8B).
 
-### 3. Fault-Tolerant Circuit Breakers
+### 3. Fault-Tolerant Cascading Fallbacks 
 Built for production reliability. If the primary LLM provider (e.g., Groq) experiences a rate limit (`429`) or outage (`503`), the Gateway automatically catches the failure and seamlessly reroutes the streaming connection to a fallback provider (Hugging Face) without disrupting the user experience.
 
 ### 4. Sliding Window Rate Limiter
@@ -61,7 +61,7 @@ Memoria supports dual environments: a fully local, air-gapped development enviro
 
 ## 🌍 Cloud Deployment Strategy
 
-The production infrastructure is globally distributed but regionally optimized. The Gateway and all managed databases are strictly collocated in the **Singapore (`ap-southeast-1`)** region to achieve `<5ms` internal network latency.
+The production infrastructure is globally distributed but regionally optimized. The Gateway and all managed databases are strictly collocated in the **Singapore (`ap-southeast-1`)** region to achieve low internal network latency.
 
 * **Frontend Interface:** Deployed on **Vercel** (Global Edge Network).
 * **API Gateway:** Deployed on **Render** (Singapore Node).
