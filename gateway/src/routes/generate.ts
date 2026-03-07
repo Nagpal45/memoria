@@ -28,7 +28,8 @@ router.post(
         `data: ${JSON.stringify({ event: "metadata", source: "llm_generated" })}\n\n`,
       );
 
-      const routeChain = determineRouteChain(prompt);
+      const vectorArray = typeof embedding === 'string' ? JSON.parse(embedding) : embedding;
+      const routeChain = await determineRouteChain(prompt, vectorArray);
 
       const { response: generatedResponse, finalModel } =
         await streamWithFallback(prompt, routeChain, res);
