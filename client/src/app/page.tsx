@@ -90,7 +90,7 @@ export default function Dashboard() {
 
     try {
       const res = await fetch(
-        "https://memoria-kz86.onrender.com/api/generate",
+        `${process.env.NEXT_PUBLIC_API_URL}/generate`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

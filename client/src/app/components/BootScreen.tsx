@@ -24,14 +24,13 @@ export function BootScreen({ onBootComplete }: BootScreenProps) {
     }, 3000);
 
     const pollServer = async () => {
-      const API_URL = "https://memoria-kz86.onrender.com";
       let isAwake = false;
       let attempts = 0;
       const maxAttempts = 20;
 
       while (!isAwake && attempts < maxAttempts) {
         try {
-          const response = await fetch(`${API_URL}/api/health`, {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/health`, {
             cache: "no-store",
           });
 
