@@ -16,7 +16,7 @@ router.post(
   checkExactCache, // L1: Redis
   checkSemanticCache, // L2: Postgres + Python
   async (req, res) => {
-    const { prompt, cacheKey, embedding } = req.body;
+    const { prompt, cacheKey, embedding, vector, similarity } = req.body;
 
     try {
       const startTime = Date.now();
@@ -25,7 +25,7 @@ router.post(
       res.setHeader("Connection", "keep-alive");
 
       res.write(
-        `data: ${JSON.stringify({ event: "metadata", source: "llm_generated" })}\n\n`,
+        `data: ${JSON.stringify({ event: "metadata", source: "llm_generated", similarity, vector })}\n\n`,
       );
 
       const routeChain = determineRouteChain(prompt);

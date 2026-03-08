@@ -29,6 +29,7 @@ export const checkSemanticCache = async (
 
     if (result.rows.length > 0) {
       const match = result.rows[0];
+      req.body.similarity = match.similarity;
 
       // console.log(
       //   `Top Semantic Match Score: ${(match.similarity * 100).toFixed(2)}%`,
@@ -78,6 +79,7 @@ export const checkSemanticCache = async (
     }
 
     req.body.embedding = embeddingString;
+    req.body.vector = embedding.slice(0, 15);
     next();
   } catch (error) {
     console.error("Semantic Cache Error:", error);
