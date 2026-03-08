@@ -1,13 +1,14 @@
-name: Render Keep-Awake Ping
+name: Morning Wake
 
 on:
   schedule:
-    # Runs every 14 minutes from 7:30 AM to 12:26 AM IST
-    - cron: '*/14 2-18 * * *'
+    # Runs exactly once a day at 2:15 AM UTC (7:45 AM IST)
+    - cron: '15 2 * * *'
   workflow_dispatch: 
 
 jobs:
-  ping:
+  morning_wake_call:
+    name: Morning Wake
     runs-on: ubuntu-latest
     steps:
       - name: Ping Render Server
