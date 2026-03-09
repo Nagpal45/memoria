@@ -1,7 +1,12 @@
 name: Morning Wake
 
 on:
+  push:
+    branches:
+      - master
   schedule:
+    # Runs every 10 mins strictly between 7:30 AM and 8:20 AM IST
+    # - cron: '*/10 2 * * *'
     - cron: '*/5 * * * *'
   workflow_dispatch: 
 
