@@ -2,8 +2,7 @@ name: Morning Wake
 
 on:
   schedule:
-    # Runs exactly once a day at 2:15 AM UTC (7:45 AM IST)
-    - cron: '15 2 * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch: 
 
 jobs:
