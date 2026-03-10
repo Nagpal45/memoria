@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: "*", //will change
+    origin: "https://memoria-navy.vercel.app",
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type"],
   }),
